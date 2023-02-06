@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const { readJSON } = require('./utils/fsUtils');
 
 const app = express();
@@ -25,6 +26,18 @@ app.get('/talker', async (_req, res) => {
     return res.status(200).json(data);
   } 
     return res.status(200).json([]);
+});
+
+function generateToken() {
+  return crypto.randomBytes(8).toString('hex');
+}
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  const token = generateToken();
+  return res.status(200).json({
+    token,
+  });
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
