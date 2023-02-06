@@ -23,6 +23,22 @@ app.use(express.json());
 const HTTP_OK_STATUS = 200;
 const PORT = '3000';
 
+app.get(
+  '/talker/search', 
+  validateAuth,
+  async (req, res) => {
+    const { q } = req.query;
+    const talkers = await readJSON();
+    const talker = talkers.filter((data) => data.name.includes(q));
+    if (talker.length > 0) {
+      return res.status(200).json(talker);
+    } 
+      return res.status(404).json({
+        message: 'Pessoa palestrante não encontrada',
+      });
+  },
+);
+
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const talkers = await readJSON();
