@@ -40,9 +40,8 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
     });
 });
 
-app.post('/talker', async (req, res) => {
+async function validateAuth(req, res, next) {
   const { authorization } = req.headers;
-  const { name, age, talk } = req.body;
   if (!authorization) {
     return res.status(401).json(
       {
@@ -54,6 +53,11 @@ app.post('/talker', async (req, res) => {
       message: 'Token inválido',
     });
   } 
+  next();
+}
+
+async function validateName(req, res, next) {
+  const { name } = req.body;
   if (!name) {
     return res.status(400).json({
       message: 'O campo "name" é obrigatório',
@@ -62,7 +66,16 @@ app.post('/talker', async (req, res) => {
     return res.status(400).json({
       message: 'O "name" deve ter pelo menos 3 caracteres',
     });
-  } if (!age && age !== 0) {
+  } 
+  next();
+}
+
+app.post('/talker', 
+  validateAuth, 
+  validateName,
+  async (req, res) => {
+  const { age, talk } = req.body;
+  if (!age && age !== 0) {
     return res.status(400).json({
       message: 'O campo "age" é obrigatório',
     });
