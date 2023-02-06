@@ -1,9 +1,17 @@
 const express = require('express');
 const crypto = require('crypto');
 const { validateEmail, validatePassword } = require('./middlewares/validateActivities');
+const validateName = require('./middlewares/validateName');
 const validateAuth = require('./middlewares/auth');
-const { readJSON, writeJSON } = require('./utils/fsUtils');
+const { readJSON } = require('./utils/fsUtils');
 const { isAgeANumberDifferentFromZero, isAnAdult } = require('./middlewares/validateAge');
+const {
+  isThereATalkKey,
+  isThereAWatchedAtKey,
+  isWatchedAtADay,
+  isWatchedAtAMonth,
+  isWatchedAtAYear,
+} = require('./middlewares/validateWatchedAt');
 
 const app = express();
 app.use(express.json());
@@ -41,79 +49,6 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
       token,
     });
 });
-
-async function validateName(req, res, next) {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({
-      message: 'O campo "name" é obrigatório',
-    });
-  } if (name.length < 3) {
-    return res.status(400).json({
-      message: 'O "name" deve ter pelo menos 3 caracteres',
-    });
-  } 
-  next();
-}
-
-async function isThereATalkKey(req, res, next) {
-  const { talk } = req.body;
-  if (!talk) {
-    return res.status(400).json({
-      message: 'O campo "talk" é obrigatório',
-    });
-  } 
-  next();
-}
-
-async function isThereAWatchedAtKey(req, res, next) {
-  const { talk: { watchedAt } } = req.body;
-  if (!watchedAt) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" é obrigatório',
-    });
-  } if (watchedAt.split('/').length !== 3) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  }
-  next();
-}
-
-async function isWatchedAtAYear(req, res, next) {
-  const { talk: { watchedAt } } = req.body;
-  if (Number(watchedAt.split('/')[2]) < 1) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  }
-  next();
-}
-
-async function isWatchedAtADay(req, res, next) {
-  const { talk: { watchedAt } } = req.body;
-  if (Number(watchedAt.split('/')[0]) < 1 || Number(watchedAt.split('/')[0]) > 31) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  } 
-  next();
-}
-
-async function isWatchedAtAMonth(req, res, next) {
-  const { talk: { watchedAt } } = req.body;
-  if (typeof watchedAt !== 'number') {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  }
-  if (Number(watchedAt.split('/')[1]) < 1 || Number(watchedAt.split('/')[1]) > 12) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  }  
-  next();
-}
 
 app.post('/talker', 
   validateAuth, 
