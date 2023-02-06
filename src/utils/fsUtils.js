@@ -7,10 +7,12 @@ async function readJSON() {
       path.resolve(__dirname, '../talker.json'),
       'utf-8',
     );
-    console.log(data);
+    return JSON.parse(data);
   } catch (err) {
     console.err(err.message);
   }
 }
 
-readJSON();
+module.exports = {
+  readJSON,
+};
