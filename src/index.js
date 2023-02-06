@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const { validateEmail, validatePassword } = require('./middlewares/validateActivities');
 const validateName = require('./middlewares/validateName');
 const validateAuth = require('./middlewares/auth');
-const { readJSON } = require('./utils/fsUtils');
+const { readJSON, writeJSON } = require('./utils/fsUtils');
 const { isAgeANumberDifferentFromZero, isAnAdult } = require('./middlewares/validateAge');
 const {
   isThereATalkKey,
@@ -52,9 +52,29 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
 
 async function isThereARateKey(req, res, next) {
   const { talk: { rate } } = req.body;
-  if (!rate) {
+  if (!rate && Number(rate) !== 0) {
     return res.status(400).json({
       message: 'O campo "rate" é obrigatório',
+    });
+  } 
+  next();
+}
+
+async function isRateKeyValid(req, res, next) {
+  const { talk: { rate } } = req.body;
+  if (!Number.isInteger(rate)) {
+    return res.status(400).json({
+      message: 'O campo "rate" deve ser um inteiro de 1 à 5',
+    });
+  }
+  if (Number(rate) === 0) {
+    return res.status(400).json({
+      message: 'O campo "rate" deve ser um inteiro de 1 à 5',
+    });
+  }
+  if (Number(rate) < 1 || Number(rate) > 5) {
+    return res.status(400).json({
+      message: 'O campo "rate" deve ser um inteiro de 1 à 5',
     });
   } 
   next();
@@ -71,7 +91,12 @@ app.post('/talker',
   isWatchedAtAMonth,
   isWatchedAtAYear,
   isThereARateKey,
+  isRateKeyValid,
   async (req, res) => {
+    const newEntry = req.body;
+    const data = await readJSON();
+    newEntry.id = data.length + 1;
+    await writeJSON(newEntry);
     res.status(201).json(req.body); 
 });
 

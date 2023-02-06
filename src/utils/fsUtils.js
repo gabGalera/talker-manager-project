@@ -17,8 +17,12 @@ async function writeJSON(file) {
   try {
     const data = await readJSON();
     data.push(file);
+    await fs.writeFile(
+      path.resolve(__dirname, '../talker.json'),
+      JSON.stringify(data),
+    );
   } catch (err) {
-    console.err(err.message);
+    console.log(err.message);
   }
 }
 
