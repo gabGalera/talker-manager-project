@@ -26,7 +26,7 @@ async function isThereAWatchedAtKey(req, res, next) {
 
 async function isWatchedAtAYear(req, res, next) {
   const { talk: { watchedAt } } = req.body;
-  if (Number(watchedAt.split('/')[2]) < 1) {
+  if (watchedAt.split('/')[2].length !== 4) {
     return res.status(400).json({
       message: feedback,
     });
@@ -36,7 +36,7 @@ async function isWatchedAtAYear(req, res, next) {
 
 async function isWatchedAtADay(req, res, next) {
   const { talk: { watchedAt } } = req.body;
-  if (Number(watchedAt.split('/')[0]) < 1 || Number(watchedAt.split('/')[0]) > 31) {
+  if (watchedAt.split('/')[0].length !== 2) {
     return res.status(400).json({
       message: feedback,
     });
@@ -46,16 +46,11 @@ async function isWatchedAtADay(req, res, next) {
 
 async function isWatchedAtAMonth(req, res, next) {
   const { talk: { watchedAt } } = req.body;
-  if (typeof watchedAt !== 'number') {
+  if (watchedAt.split('/')[1].length !== 2) {
     return res.status(400).json({
       message: feedback,
     });
   }
-  if (Number(watchedAt.split('/')[1]) < 1 || Number(watchedAt.split('/')[1]) > 12) {
-    return res.status(400).json({
-      message: feedback,
-    });
-  }  
   next();
 }
 

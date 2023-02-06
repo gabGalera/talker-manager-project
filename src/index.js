@@ -50,6 +50,16 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
     });
 });
 
+async function isThereARateKey(req, res, next) {
+  const { talk: { rate } } = req.body;
+  if (!rate) {
+    return res.status(400).json({
+      message: 'O campo "rate" é obrigatório',
+    });
+  } 
+  next();
+}
+
 app.post('/talker', 
   validateAuth, 
   validateName,
@@ -60,7 +70,10 @@ app.post('/talker',
   isWatchedAtADay,
   isWatchedAtAMonth,
   isWatchedAtAYear,
-  async (req, res) => res.status(201).json(req.body));
+  isThereARateKey,
+  async (req, res) => {
+    res.status(201).json(req.body); 
+});
 
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
