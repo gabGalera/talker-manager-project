@@ -56,37 +56,76 @@ async function validateName(req, res, next) {
   next();
 }
 
-app.post('/talker', 
-  validateAuth, 
-  validateName,
-  isAgeANumberDifferentFromZero,
-  isAnAdult,
-  async (req, res) => {
+async function isThereATalkKey(req, res, next) {
   const { talk } = req.body;
   if (!talk) {
     return res.status(400).json({
       message: 'O campo "talk" é obrigatório',
     });
   } 
-  const { watchedAt } = talk;
+  next();
+}
+
+async function isThereAWatchedAtKey(req, res, next) {
+  const { talk: { watchedAt } } = req.body;
   if (!watchedAt) {
     return res.status(400).json({
       message: 'O campo "watchedAt" é obrigatório',
     });
-  } if (Number(watchedAt.split('/')[0]) < 1 && Number(watchedAt.split('/')[0]) > 31) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  } if (Number(watchedAt.split('/')[1]) < 1 && Number(watchedAt.split('/')[1]) > 12) {
-    return res.status(400).json({
-      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
-    });
-  } if (Number(watchedAt.split('/')[1]) >= 0) {
+  } if (watchedAt.split('/').length !== 3) {
     return res.status(400).json({
       message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
     });
   }
-});
+  next();
+}
+
+async function isWatchedAtAYear(req, res, next) {
+  const { talk: { watchedAt } } = req.body;
+  if (Number(watchedAt.split('/')[2]) < 1) {
+    return res.status(400).json({
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
+    });
+  }
+  next();
+}
+
+async function isWatchedAtADay(req, res, next) {
+  const { talk: { watchedAt } } = req.body;
+  if (Number(watchedAt.split('/')[0]) < 1 || Number(watchedAt.split('/')[0]) > 31) {
+    return res.status(400).json({
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
+    });
+  } 
+  next();
+}
+
+async function isWatchedAtAMonth(req, res, next) {
+  const { talk: { watchedAt } } = req.body;
+  if (typeof watchedAt !== 'number') {
+    return res.status(400).json({
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
+    });
+  }
+  if (Number(watchedAt.split('/')[1]) < 1 || Number(watchedAt.split('/')[1]) > 12) {
+    return res.status(400).json({
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
+    });
+  }  
+  next();
+}
+
+app.post('/talker', 
+  validateAuth, 
+  validateName,
+  isAgeANumberDifferentFromZero,
+  isAnAdult,
+  isThereATalkKey,
+  isThereAWatchedAtKey,
+  isWatchedAtADay,
+  isWatchedAtAMonth,
+  isWatchedAtAYear,
+  async (req, res) => res.status(201).json(req.body));
 
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
