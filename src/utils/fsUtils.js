@@ -13,6 +13,16 @@ async function readJSON() {
   }
 }
 
+async function writeJSON(file) {
+  try {
+    const data = await readJSON();
+    data.push(file);
+  } catch (err) {
+    console.err(err.message);
+  }
+}
+
 module.exports = {
   readJSON,
+  writeJSON,
 };
