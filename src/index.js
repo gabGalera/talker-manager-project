@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const { validateEmail, validatePassword } = require('./middlewares/validateActivities');
 const validateName = require('./middlewares/validateName');
 const validateAuth = require('./middlewares/auth');
-const { readJSON, writeJSON } = require('./utils/fsUtils');
+const { readJSON, writeJSON, updateJSON } = require('./utils/fsUtils');
 const { isAgeANumberDifferentFromZero, isAnAdult } = require('./middlewares/validateAge');
 const {
   isThereATalkKey,
@@ -72,6 +72,29 @@ app.post('/talker',
     newEntry.id = data.length + 1;
     await writeJSON(newEntry);
     res.status(201).json(req.body); 
+});
+
+app.put('/talker/:id', 
+  validateAuth, 
+  validateName,
+  isAgeANumberDifferentFromZero,
+  isAnAdult,
+  isThereATalkKey,
+  isThereAWatchedAtKey,
+  isWatchedAtADay,
+  isWatchedAtAMonth,
+  isWatchedAtAYear,
+  isThereARateKey,
+  isRateKeyValid,
+  async (req, res) => {
+    const talkerNewInfo = req.body;
+    const { id } = req.params;
+    talkerNewInfo.id = Number(id);
+    const talkers = await readJSON();
+    const talkersNotOnCHange = talkers.filter((talker) => talker.id !== Number(id));
+    talkersNotOnCHange.push(talkerNewInfo);
+    await updateJSON(talkersNotOnCHange);
+    res.status(200).json(req.body); 
 });
 
 // não remova esse endpoint, e para o avaliador funcionar

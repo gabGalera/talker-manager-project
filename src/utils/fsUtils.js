@@ -26,7 +26,19 @@ async function writeJSON(file) {
   }
 }
 
+async function updateJSON(file) {
+  try {
+    await fs.writeFile(
+      path.resolve(__dirname, '../talker.json'),
+      JSON.stringify(file),
+    );
+  } catch (err) {
+    console.log(err.message);
+  }
+}
+
 module.exports = {
   readJSON,
   writeJSON,
+  updateJSON,
 };
