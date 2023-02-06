@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const { validateEmail, validatePassword } = require('./middlewares/validateActivities');
 const { readJSON } = require('./utils/fsUtils');
 
 const app = express();
@@ -32,26 +33,7 @@ function generateToken() {
   return crypto.randomBytes(8).toString('hex');
 }
 
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const tester = /\w+@\w+\.\w+/;
-  if (!email) {
-    return res.status(400).json({
-      message: 'O campo "email" é obrigatório',
-    });
-  } if (!tester.test(email)) {
-    return res.status(400).json({
-      message: 'O "email" deve ter o formato "email@email.com"',
-    });
-  } if (!password) {
-    return res.status(400).json({
-      message: 'O campo "password" é obrigatório',
-    });
-  } if (password.length < 6) {
-    return res.status(400).json({
-      message: 'O "password" deve ter pelo menos 6 caracteres',
-    });
-  } 
+app.post('/login', validateEmail, validatePassword, async (req, res) => {
     const token = generateToken();
     return res.status(200).json({
       token,
