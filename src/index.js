@@ -1,7 +1,9 @@
 const express = require('express');
 const crypto = require('crypto');
 const { validateEmail, validatePassword } = require('./middlewares/validateActivities');
+const validateAuth = require('./middlewares/auth');
 const { readJSON, writeJSON } = require('./utils/fsUtils');
+const { isAgeANumberDifferentFromZero, isAnAdult } = require('./middlewares/validateAge');
 
 const app = express();
 app.use(express.json());
@@ -40,22 +42,6 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
     });
 });
 
-async function validateAuth(req, res, next) {
-  const { authorization } = req.headers;
-  if (!authorization) {
-    return res.status(401).json(
-      {
-        message: 'Token não encontrado',
-      },
-    );
-  } if (typeof authorization !== 'string' || authorization.length !== 16) {
-    return res.status(401).json({
-      message: 'Token inválido',
-    });
-  } 
-  next();
-}
-
 async function validateName(req, res, next) {
   const { name } = req.body;
   if (!name) {
@@ -73,23 +59,31 @@ async function validateName(req, res, next) {
 app.post('/talker', 
   validateAuth, 
   validateName,
+  isAgeANumberDifferentFromZero,
+  isAnAdult,
   async (req, res) => {
-  const { age, talk } = req.body;
-  if (!age && age !== 0) {
+  const { talk } = req.body;
+  if (!talk) {
     return res.status(400).json({
-      message: 'O campo "age" é obrigatório',
+      message: 'O campo "talk" é obrigatório',
     });
-  } if (typeof age !== 'number') {
+  } 
+  const { watchedAt } = talk;
+  if (!watchedAt) {
     return res.status(400).json({
-      message: 'O campo "age" deve ser do tipo "number"',
+      message: 'O campo "watchedAt" é obrigatório',
     });
-  } if (!Number.isInteger(age)) {
+  } if (Number(watchedAt.split('/')[0]) < 1 && Number(watchedAt.split('/')[0]) > 31) {
     return res.status(400).json({
-      message: 'O campo "age" deve ser um "number" do tipo inteiro',
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
     });
-  } if (Number(age) < 18) {
+  } if (Number(watchedAt.split('/')[1]) < 1 && Number(watchedAt.split('/')[1]) > 12) {
     return res.status(400).json({
-      message: 'A pessoa palestrante deve ser maior de idade',
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
+    });
+  } if (Number(watchedAt.split('/')[1]) >= 0) {
+    return res.status(400).json({
+      message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"',
     });
   }
 });
